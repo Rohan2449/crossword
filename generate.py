@@ -116,10 +116,18 @@ class CrosswordCreator():
         Return True if a revision was made to the domain of `x`; return
         False if no revision was made.
         """
+        # if the length of the words are not the same, then there wont be any revisions to
+        # their domains (since there is no overlap).
+        if x.length != y.length:
+            return False
+        
         revision = False
         overlap = self.crossword.overlaps[x,y]
-        if overlap != None:
 
+        # if there is an overlap between the two variables
+        if overlap != None:
+            # for each word in the domain of x, if the word causes a conflict with the domain
+            # of y, then remove the word from the domain of x
             for word_x in self.domains[x]:
                 conflict = True
                 for word_y in self.domains[y]:
@@ -133,6 +141,12 @@ class CrosswordCreator():
                 if conflict:
                     self.domains[x].remove(word_x)
                     revision = True
+        else: # if there is no overlap between the two variables, then:
+            # if there is only one value in the domain of y that is also in the domain of x,
+            # then it should be removed form the domain of x
+            if len(self.domains[y]) == 1 and self.domains[y][0] in self.domains[x]:
+                self.domains[x].remove(self.domains[y][0])
+                revision = True
 
         return revision
 
