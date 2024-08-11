@@ -123,7 +123,8 @@ class CrosswordCreator():
         
         revision = False
         overlap = self.crossword.overlaps[x,y]
-
+        overlap_x = overlap[0]    # the index of the letter in x that overlaps with y
+        overlap_y = overlap[1]    # the index of the letter in y that overlaps with x
         # if there is an overlap between the two variables
         if overlap != None:
             # for each word in the domain of x, if the word causes a conflict with the domain
@@ -134,7 +135,7 @@ class CrosswordCreator():
                     # if the overlapping letters are the same, and the two words are different,
                     # then there is no conflict. Otherwise, there is a conflict and word_x must be
                     # removed from the domain of x.
-                    if word_x[overlap[0]] == word_y[overlap[1]] and word_x != word_y:
+                    if word_x[overlap_x] == word_y[overlap_y] and word_x != word_y:
                         conflict = False
                         break
                 
@@ -150,7 +151,7 @@ class CrosswordCreator():
 
         return revision
 
-        raise NotImplementedError
+
 
     def ac3(self, arcs=None):
         """
