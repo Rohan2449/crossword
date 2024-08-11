@@ -132,6 +132,9 @@ class CrosswordCreator():
                 
                 if conflict:
                     self.domains[x].remove(word_x)
+                    revision = True
+
+        return revision
 
         raise NotImplementedError
 
