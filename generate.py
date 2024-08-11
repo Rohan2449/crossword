@@ -99,7 +99,13 @@ class CrosswordCreator():
         (Remove any values that are inconsistent with a variable's unary
          constraints; in this case, the length of the word.)
         """
-        raise NotImplementedError
+        # For every variable in our crossword puzzle
+        for var in self.crossword:
+            # for every domain in our variable
+            for domain in self.domains[var]:
+                # ensure that the domain's word length is consistent with the varaible
+                if len(domain) != var.length:
+                    self.domains[var].remove(domain)
 
     def revise(self, x, y):
         """
@@ -110,6 +116,23 @@ class CrosswordCreator():
         Return True if a revision was made to the domain of `x`; return
         False if no revision was made.
         """
+        revision = False
+        overlap = self.crossword.overlaps[x,y]
+        if overlap != None:
+
+            for word_x in self.domains[x]:
+                conflict = True
+                for word_y in self.domains[y]:
+                    # if the overlapping letters are the same, and the two words are different,
+                    # then there is no conflict. Otherwise, there is a conflict and word_x must be
+                    # removed from the domain of x.
+                    if word_x[overlap[0]] == word_y[overlap[1]] and word_x != word_y:
+                        conflict = False
+                        break
+                
+                if conflict:
+                    self.domains[x].remove(word_x)
+
         raise NotImplementedError
 
     def ac3(self, arcs=None):
