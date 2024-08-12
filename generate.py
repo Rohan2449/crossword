@@ -118,7 +118,7 @@ class CrosswordCreator():
         False if no revision was made.
         """
         revision = False
-        overlap = self.crossword.overlaps[x,y]
+        overlap = self.crossword.overlaps[x, y]
         # if there is an overlap between the two variables
         if overlap is not None:
             overlap_x, overlap_y = overlap
@@ -141,7 +141,7 @@ class CrosswordCreator():
                 if conflict:
                     self.domains[x].remove(word_x)
                     revision = True
-        else: # if there is no overlap between the two variables, then:
+        else:  # if there is no overlap between the two variables, then:
             # if there is only one value in the domain of y that is also in the domain of x,
             # then it should be removed form the domain of x
             if len(self.domains[y]) == 1 and self.domains[y][0] in self.domains[x]:
@@ -149,7 +149,6 @@ class CrosswordCreator():
                 revision = True
 
         return revision
-
 
 
     def ac3(self, arcs=None):
@@ -166,16 +165,15 @@ class CrosswordCreator():
             arcs = []
             for var in self.crossword.variables:
                 for neighbor in self.crossword.neighbors(var):
-                    arcs.append( (var, neighbor) )
-        
+                    arcs.append((var, neighbor))
 
         # enforce arc consistency
         while len(arcs) != 0:
-            (x,y) = arcs.pop(0)
+            (x, y) = arcs.pop(0)
 
             # if a revision was made to the domain, enforce arc consistency with the other
             # neighbors of x
-            if self.revise(x,y):
+            if self.revise(x, y):
                 if len(self.domains[x]) == 0:
                     return False
                 
@@ -186,7 +184,7 @@ class CrosswordCreator():
             
         return True
 
-        
+
     def assignment_complete(self, assignment):
         """
         Return True if `assignment` is complete (i.e., assigns a value to each
@@ -194,6 +192,7 @@ class CrosswordCreator():
         """
 
         return len(assignment) == len(self.crossword.variables)
+
 
     def consistent(self, assignment):
         """
@@ -223,6 +222,7 @@ class CrosswordCreator():
                 
         return True
 
+
     def order_domain_values(self, var, assignment):
         """
         Return a list of values in the domain of `var`, in order by
@@ -246,7 +246,6 @@ class CrosswordCreator():
             rules_out[var_domain] = conflict_count
 
         return sorted(rules_out, key= lambda val: rules_out[val])
-
 
 
     def select_unassigned_variable(self, assignment):
@@ -283,7 +282,6 @@ class CrosswordCreator():
         return least_domain_var
 
 
-
     def backtrack(self, assignment):
         """
         Using Backtracking Search, take as input a partial assignment for the
@@ -293,6 +291,25 @@ class CrosswordCreator():
 
         If no assignment is possible, return None.
         """
+        if self.assignment_complete(assignment):
+            return assignment
+
+        for i in range(len(self.crossword.variables) - len(assignment)):
+            var = self.select_unassigned_variable(assignment)
+
+            temp_assignment = assignment.copy()
+            for value in self.order_domain_values(var, assignment):
+                temp_assignment[var] = value
+
+                if self.consistent(temp_assignment):
+                    result = self.backtrack(temp_assignment)
+
+                    if result is None:
+                        return result
+
+        return None
+
+
         # if len(assignment) == len(self.crossword.variables):
         #     return assignment
         #
