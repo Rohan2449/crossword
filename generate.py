@@ -80,7 +80,7 @@ class CrosswordCreator():
                         draw.text(
                             (rect[0][0] + ((interior_size - w) / 2),
                              rect[0][1] + ((interior_size - h) / 2) - 10),
-                             letters[i][j], fill="black", font=font
+                            letters[i][j], fill="black", font=font
                         )
 
         img.save(filename)
@@ -100,9 +100,10 @@ class CrosswordCreator():
          constraints; in this case, the length of the word.)
         """
         # For every variable in our crossword puzzle
-        for var in self.crossword:
+        for var in self.crossword.variables:
             # for every domain in our variable
-            for domain in self.domains[var]:
+            domains = list(self.domains[var])
+            for domain in domains:
                 # ensure that the domain's word length is consistent with the variable
                 if len(domain) != var.length:
                     self.domains[var].remove(domain)
@@ -116,24 +117,20 @@ class CrosswordCreator():
         Return True if a revision was made to the domain of `x`; return
         False if no revision was made.
         """
-        # if the length of the words are not the same, then there won't be any revisions to
-        # their domains (since there is no overlap).
-        if x.length != y.length:
-            return False
-        
         revision = False
         overlap = self.crossword.overlaps[x,y]
         # if there is an overlap between the two variables
         if overlap is not None:
-            overlap_x = overlap[0]    # the index of the letter in x that overlaps with y
-            overlap_y = overlap[1]    # the index of the letter in y that overlaps with x
+            overlap_x, overlap_y = overlap
 
             # for each word in the domain of x, if the word causes a conflict with the domain
             # of y, then remove the word from the domain of x
-            for word_x in self.domains[x]:
+            domains_x = set(self.domains[x]).copy()
+            for word_x in domains_x:
                 conflict = True
 
-                for word_y in self.domains[y]:
+                domains_y = set(self.domains[y]).copy()
+                for word_y in domains_y:
                     # if the overlapping letters are the same, and the two words are different,
                     # then there is no conflict. Otherwise, there is a conflict and word_x must be
                     # removed from the domain of x.
@@ -182,9 +179,10 @@ class CrosswordCreator():
                 if len(self.domains[x]) == 0:
                     return False
                 
-                neighbors = self.crossword.neighbors(x).remove(y)
+                neighbors = self.crossword.neighbors(x).copy()
+                neighbors.remove(y)
                 for neighbor in neighbors:
-                    arcs.append((x, neighbor))
+                    arcs.append((neighbor, x))
             
         return True
 
@@ -194,26 +192,29 @@ class CrosswordCreator():
         Return True if `assignment` is complete (i.e., assigns a value to each
         crossword variable); return False otherwise.
         """
-        for var in assignment:
-            if assignment[var] is None:
-                return False
-        
-        return True
+
+        return len(assignment) == len(self.crossword.variables)
 
     def consistent(self, assignment):
         """
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
+        assigned_values = []
         for var in assignment:
-            if var is None:
+            if assignment[var] is None:
                 continue
+            # ensure that the same value is not assigned to multiple variables
+            if assignment[var] not in assigned_values:
+                assigned_values.append(assignment[var])
+            else:
+                return False
 
             if len(assignment[var]) != var.length:
                 return False
             # may need to check if two variables have the same assignment. ****
             for neighbor in self.crossword.neighbors(var):
-                if neighbor is None:
+                if neighbor not in assignment or assignment[neighbor] is None:
                     continue
 
                 overlap_var, overlap_neighbor = self.crossword.overlaps[var, neighbor]
@@ -258,7 +259,8 @@ class CrosswordCreator():
         """
         least_domain_var = None
         equal_domain_var = None
-        least_domain_count = 0
+
+        least_domain_count = float("inf")
 
         # ensure that least_domain_var is assigned the variable with the smallest domain
         for var in self.crossword.variables:
@@ -291,7 +293,19 @@ class CrosswordCreator():
 
         If no assignment is possible, return None.
         """
-        raise NotImplementedError
+        # if len(assignment) == len(self.crossword.variables):
+        #     return assignment
+        #
+        # temp_assignment = assignment.copy()
+        # for var in self.select_unassigned_variable(assignment):
+        #
+        # var = self.select_unassigned_variable(assignment)
+        #
+        # domains = self.order_domain_values(var, assignment)
+        #
+        # temp_assignment
+        # backtrack()
+        # raise NotImplementedError
 
 
 def main():
